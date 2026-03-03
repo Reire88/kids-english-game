@@ -1,0 +1,72 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:gravity="center_horizontal"
+    android:padding="18dp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/progressText"
+        android:text="1 / 10"
+        android:textSize="20sp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp" />
+
+    <ImageView
+        android:id="@+id/itemImage"
+        android:layout_width="280dp"
+        android:layout_height="280dp"
+        android:layout_marginTop="16dp"
+        android:contentDescription="item"/>
+
+    <TextView
+        android:id="@+id/feedbackText"
+        android:text=""
+        android:textSize="36sp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"/>
+
+    <TextView
+        android:id="@+id/scoreText"
+        android:text="Score: 0"
+        android:textSize="22sp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"/>
+
+    <Button
+        android:id="@+id/micButton"
+        android:text="🎤 Speak"
+        android:textSize="26sp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="22dp"/>
+
+    <ProgressBar
+        android:id="@+id/listeningSpinner"
+        style="?android:attr/progressBarStyleLarge"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="18dp"/>
+
+    <ImageView
+        android:id="@+id/prizeImage"
+        android:layout_width="240dp"
+        android:layout_height="240dp"
+        android:visibility="gone"
+        android:layout_marginTop="18dp"
+        android:contentDescription="prize"/>
+
+    <Button
+        android:id="@+id/restartButton"
+        android:text="Play again"
+        android:textSize="22sp"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"/>
+
+</LinearLayout>
