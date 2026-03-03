@@ -21,17 +21,15 @@ jobs:
         uses: android-actions/setup-android@v3
 
       # IMPORTANT: do NOT use gradle/actions/setup-gradle (it enables caching)
-      - name: Build debug APK with Gradle wrapper if present, otherwise use Gradle via apt
+      - name: Download Gradle 8.7 (no cache)
         run: |
-          if [ -f "./gradlew" ]; then
-            chmod +x ./gradlew
-            ./gradlew :app:assembleDebug --no-daemon
-          else
-            sudo apt-get update
-            sudo apt-get install -y gradle
-            gradle :app:assembleDebug --no-daemon
-          fi
+          curl -L -o gradle.zip https://services.gradle.org/distributions/gradle-8.7-bin.zip
+          unzip -q gradle.zip
+          echo "$PWD/gradle-8.7/bin" >> $GITHUB_PATH
 
+      - name: Build debug APK
+       run: gradle :app:assembleDebug --no-daemon --stacktrace
+       
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
