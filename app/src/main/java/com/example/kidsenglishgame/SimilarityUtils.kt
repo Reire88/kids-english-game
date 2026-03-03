@@ -1,4 +1,3 @@
-\
 package com.example.kidsenglishgame
 
 import kotlin.math.max
