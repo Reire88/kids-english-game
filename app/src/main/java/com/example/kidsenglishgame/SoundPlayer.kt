@@ -2,7 +2,7 @@ package com.example.kidsenglishgame
 
 import android.content.Context
 import android.media.MediaPlayer
-
+import com.example.kidsenglishgame.R
 class SoundPlayer(private val context: Context) {
 
     private var successPlayer: MediaPlayer? = null
