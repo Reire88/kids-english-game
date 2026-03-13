@@ -15,43 +15,77 @@ class SpeechHelper(
     private val onError: (Int) -> Unit
 ) {
 
-    private val recognizer: SpeechRecognizer = SpeechRecognizer.createSpeechRecognizer(context)
+    private val appContext = context.applicationContext
+    private var recognizer: SpeechRecognizer? = null
     private var listening = false
 
     init {
-        recognizer.setRecognitionListener(object : RecognitionListener {
-            override fun onReadyForSpeech(params: Bundle?) { setListening(true) }
-            override fun onBeginningOfSpeech() {}
-            override fun onRmsChanged(rmsdB: Float) {}
-            override fun onBufferReceived(buffer: ByteArray?) {}
-            override fun onEndOfSpeech() {}
+        try {
+            if (SpeechRecognizer.isRecognitionAvailable(appContext)) {
+                recognizer = SpeechRecognizer.createSpeechRecognizer(appContext)
+                recognizer?.setRecognitionListener(object : RecognitionListener {
+                    override fun onReadyForSpeech(params: Bundle?) {
+                        setListening(true)
+                    }
 
-            override fun onError(error: Int) {
-                setListening(false)
-                onError(error)
+                    override fun onBeginningOfSpeech() {}
+
+                    override fun onRmsChanged(rmsdB: Float) {}
+
+                    override fun onBufferReceived(buffer: ByteArray?) {}
+
+                    override fun onEndOfSpeech() {
+                        setListening(false)
+                    }
+
+                    override fun onError(error: Int) {
+                        setListening(false)
+                        onError(error)
+                    }
+
+                    override fun onResults(results: Bundle?) {
+                        setListening(false)
+                        val matches = results
+                            ?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                            ?.toList()
+                            ?: emptyList()
+                        onResult(matches)
+                    }
+
+                    override fun onPartialResults(partialResults: Bundle?) {}
+
+                    override fun onEvent(eventType: Int, params: Bundle?) {}
+                })
             }
-
-            override fun onResults(results: Bundle?) {
-                setListening(false)
-                val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
-                onResult(matches?.toList() ?: emptyList())
-            }
-
-            override fun onPartialResults(partialResults: Bundle?) {}
-            override fun onEvent(eventType: Int, params: Bundle?) {}
-        })
+        } catch (_: Exception) {
+            recognizer = null
+        }
     }
 
     fun startListening() {
-        if (listening) return
-        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-            putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, false)
-            putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 5)
-            putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.US.toLanguageTag())
-            putExtra(RecognizerIntent.EXTRA_PROMPT, "Say it in English")
+        try {
+            if (listening) return
+            val localRecognizer = recognizer ?: run {
+                onError(-1)
+                return
+            }
+
+            val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                putExtra(
+                    RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                    RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+                )
+                putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, false)
+                putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 5)
+                putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.US.toLanguageTag())
+                putExtra(RecognizerIntent.EXTRA_PROMPT, "Say it in English")
+            }
+
+            localRecognizer.startListening(intent)
+        } catch (_: Exception) {
+            setListening(false)
+            onError(-1)
         }
-        recognizer.startListening(intent)
     }
 
     private fun setListening(value: Boolean) {
@@ -60,6 +94,11 @@ class SpeechHelper(
     }
 
     fun destroy() {
-        recognizer.destroy()
+        try {
+            recognizer?.cancel()
+            recognizer?.destroy()
+        } catch (_: Exception) {
+        }
+        recognizer = null
     }
 }
