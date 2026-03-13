@@ -76,26 +76,28 @@ class MainActivity : AppCompatActivity() {
         feedbackText.text = ""
         updateUIForCurrent()
     }
-private fun updateUIForCurrent() {
-    val item = game.currentItem() ?: return
-    val resId = item.drawableResId(this)
 
-    try {
-        if (resId != 0) {
-            itemImage.setImageResource(resId)
-            feedbackText.text = item.word
-        } else {
-            feedbackText.text = "Missing image: ${item.word}"
+    private fun updateUIForCurrent() {
+        val item = game.currentItem() ?: return
+        val resId = item.drawableResId(this)
+
+        try {
+            if (resId != 0) {
+                itemImage.setImageResource(resId)
+                feedbackText.text = item.word
+            } else {
+                feedbackText.text = "Missing image: ${item.word}"
+                itemImage.setImageDrawable(null)
+            }
+        } catch (e: Exception) {
+            feedbackText.text = "Image error: ${item.word}"
             itemImage.setImageDrawable(null)
         }
-    } catch (e: Exception) {
-        feedbackText.text = "Image error: ${item.word}"
-        itemImage.setImageDrawable(null)
+
+        scoreText.text = "Score: ${game.score}"
+        progressText.text = "${game.questionNumber()} / 10"
     }
 
-    scoreText.text = "Score: ${game.score}"
-    progressText.text = "${game.questionNumber()} / 10"
-}
     private fun ensureMicPermissionAndStart() {
         val perm = android.Manifest.permission.RECORD_AUDIO
         if (ContextCompat.checkSelfPermission(this, perm) == PackageManager.PERMISSION_GRANTED) {
@@ -120,69 +122,67 @@ private fun updateUIForCurrent() {
     }
 
     private fun handleSpeech(hypotheses: List<String>) {
-    try {
-        val item = game.currentItem() ?: return
-        val ok = SimilarityUtils.isAcceptable(hypotheses, item.word)
+        try {
+            val item = game.currentItem() ?: return
+            val ok = SimilarityUtils.isAcceptable(hypotheses, item.word)
 
-        if (ok) {
-            try {
-                sounds.success()
-            } catch (_: Exception) {
-            }
-
-            feedbackText.text = "Right ✔"
-            game.markCorrect()
-
-            itemImage.postDelayed({
+            if (ok) {
                 try {
-                    if (game.isFinished()) {
-                        showFinal()
-                    } else {
-                        feedbackText.text = ""
-                        updateUIForCurrent()
-                    }
-                } catch (e: Exception) {
-                    feedbackText.text = "Error after right answer"
+                    sounds.success()
+                } catch (_: Exception) {
                 }
-            }, 900)
-        } else {
-            try {
-                sounds.fail()
-            } catch (_: Exception) {
-            }
 
-            game.markWrong()
-            showWrongOrRetryMessage()
-        }
-    } catch (e: Exception) {
-        feedbackText.text = "Speech error"
-    }
-}
-    }
+                feedbackText.text = "Right ✔"
+                game.markCorrect()
 
-   private fun showWrongOrRetryMessage() {
-    try {
-        if (game.canRetryCurrent()) {
-            feedbackText.text = "Wrong ✖ Try again"
-        } else {
-            feedbackText.text = "Wrong ✖"
-            itemImage.postDelayed({
+                itemImage.postDelayed({
+                    try {
+                        if (game.isFinished()) {
+                            showFinal()
+                        } else {
+                            feedbackText.text = ""
+                            updateUIForCurrent()
+                        }
+                    } catch (e: Exception) {
+                        feedbackText.text = "Error after right answer"
+                    }
+                }, 900)
+            } else {
                 try {
-                    if (game.isFinished()) {
-                        showFinal()
-                    } else {
-                        feedbackText.text = ""
-                        updateUIForCurrent()
-                    }
-                } catch (e: Exception) {
-                    feedbackText.text = "Error after wrong answer"
+                    sounds.fail()
+                } catch (_: Exception) {
                 }
-            }, 900)
+
+                game.markWrong()
+                showWrongOrRetryMessage()
+            }
+        } catch (e: Exception) {
+            feedbackText.text = "Speech error"
         }
-    } catch (e: Exception) {
-        feedbackText.text = "Retry error"
     }
-}
+
+    private fun showWrongOrRetryMessage() {
+        try {
+            if (game.canRetryCurrent()) {
+                feedbackText.text = "Wrong ✖ Try again"
+            } else {
+                feedbackText.text = "Wrong ✖"
+                itemImage.postDelayed({
+                    try {
+                        if (game.isFinished()) {
+                            showFinal()
+                        } else {
+                            feedbackText.text = ""
+                            updateUIForCurrent()
+                        }
+                    } catch (e: Exception) {
+                        feedbackText.text = "Error after wrong answer"
+                    }
+                }, 900)
+            }
+        } catch (e: Exception) {
+            feedbackText.text = "Retry error"
+        }
     }
 
     private fun showFinal() {
