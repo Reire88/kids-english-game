@@ -2,7 +2,7 @@ package com.example.kidsenglishgame
 
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.widget.Button
+import android.widget.ButtonhowWrongOrRetryMessage
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
@@ -157,29 +157,32 @@ class MainActivity : AppCompatActivity() {
 }
     }
 
-    private fun showWrongOrRetryMessage() {
-        try {
-            if (game.canRetryCurrent()) {
-                feedbackText.text = "Wrong ✖ Try again"
-            } else {
-                feedbackText.text = "Wrong ✖"
-                itemImage.postDelayed({
-                    try {
-                        if (game.isFinished()) {
-                            showFinal()
-                        } else {
-                            feedbackText.text = ""
-                            updateUIForCurrent()
-                        }
-                    } catch (e: Exception) {
-                        feedbackText.text = "Error after wrong answer"
+  private fun showWrongOrRetryMessage() {
+    try {
+        if (game.canRetryCurrent()) {
+            feedbackText.text = "Wrong ✖ Try again"
+        } else {
+            feedbackText.text = "Wrong ✖"
+
+            itemImage.postDelayed({
+                if (isFinishing || isDestroyed) return@postDelayed
+
+                try {
+                    if (game.isFinished()) {
+                        showFinal()
+                    } else {
+                        feedbackText.text = ""
+                        updateUIForCurrent()
                     }
-                }, 900)
-            }
-        } catch (e: Exception) {
-            feedbackText.text = "Retry error"
+                } catch (e: Exception) {
+                    feedbackText.text = "Error after wrong answer"
+                }
+            }, 900)
         }
+    } catch (e: Exception) {
+        feedbackText.text = "Retry error"
     }
+}
 
     private fun showFinal() {
         itemImage.visibility = ImageView.GONE
