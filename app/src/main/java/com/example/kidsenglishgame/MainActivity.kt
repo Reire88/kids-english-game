@@ -121,36 +121,38 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun handleSpeech(hypotheses: List<String>) {
-        try {
-            val item = game.currentItem() ?: return
-            val ok = SimilarityUtils.isAcceptable(hypotheses, item.word)
+   private fun handleSpeech(hypotheses: List<String>) {
+    try {
+        val item = game.currentItem() ?: return
+        val ok = SimilarityUtils.isAcceptable(hypotheses, item.word)
 
-            if (ok) {
+        if (ok) {
+            // sounds.success()
+
+            feedbackText.text = "Right ✔"
+            game.markCorrect()
+
+            itemImage.postDelayed({
                 try {
-                    sounds.success()
-                } catch (_: Exception) {
-                }
-
-                feedbackText.text = "Right ✔"
-                game.markCorrect()
-
-                itemImage.postDelayed({
-                    try {
-                        if (game.isFinished()) {
-                            showFinal()
-                        } else {
-                            feedbackText.text = ""
-                            updateUIForCurrent()
-                        }
-                    } catch (e: Exception) {
-                        feedbackText.text = "Error after right answer"
+                    if (game.isFinished()) {
+                        showFinal()
+                    } else {
+                        feedbackText.text = ""
+                        updateUIForCurrent()
                     }
-                }, 900)
-            } else {
-                try {
-                    sounds.fail()
-                } catch (_: Exception) {
+                } catch (e: Exception) {
+                    feedbackText.text = "Error after right answer"
+                }
+            }, 900)
+        } else {
+            // sounds.fail()
+
+            game.markWrong()
+            showWrongOrRetryMessage()
+        }
+    } catch (e: Exception) {
+        feedbackText.text = "Speech error"
+    }
                 }
 
                 game.markWrong()
@@ -199,9 +201,16 @@ class MainActivity : AppCompatActivity() {
         prizeImage.setImageResource(game.prizeForScore(score).drawableResId(this))
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
+  override fun onDestroy() {
+    try {
         speech.destroy()
-        sounds.release()
+    } catch (_: Exception) {
     }
+
+    try {
+        sounds.release()
+    } catch (_: Exception) {
+    }
+
+    super.onDestroy()
 }
