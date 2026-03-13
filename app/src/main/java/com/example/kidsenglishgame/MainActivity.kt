@@ -76,21 +76,26 @@ class MainActivity : AppCompatActivity() {
         feedbackText.text = ""
         updateUIForCurrent()
     }
+private fun updateUIForCurrent() {
+    val item = game.currentItem() ?: return
+    val resId = item.drawableResId(this)
 
-    private fun updateUIForCurrent() {
-        val item = game.currentItem() ?: return
-        val resId = item.drawableResId(this)
-
+    try {
         if (resId != 0) {
             itemImage.setImageResource(resId)
+            feedbackText.text = item.word
         } else {
             feedbackText.text = "Missing image: ${item.word}"
+            itemImage.setImageDrawable(null)
         }
-
-        scoreText.text = "Score: ${game.score}"
-        progressText.text = "${game.questionNumber()} / 10"
+    } catch (e: Exception) {
+        feedbackText.text = "Image error: ${item.word}"
+        itemImage.setImageDrawable(null)
     }
 
+    scoreText.text = "Score: ${game.score}"
+    progressText.text = "${game.questionNumber()} / 10"
+}
     private fun ensureMicPermissionAndStart() {
         val perm = android.Manifest.permission.RECORD_AUDIO
         if (ContextCompat.checkSelfPermission(this, perm) == PackageManager.PERMISSION_GRANTED) {
@@ -115,43 +120,69 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun handleSpeech(hypotheses: List<String>) {
+    try {
         val item = game.currentItem() ?: return
         val ok = SimilarityUtils.isAcceptable(hypotheses, item.word)
 
         if (ok) {
-            sounds.success()
+            try {
+                sounds.success()
+            } catch (_: Exception) {
+            }
+
             feedbackText.text = "Right ✔"
             game.markCorrect()
 
             itemImage.postDelayed({
-                if (game.isFinished()) {
-                    showFinal()
-                } else {
-                    feedbackText.text = ""
-                    updateUIForCurrent()
+                try {
+                    if (game.isFinished()) {
+                        showFinal()
+                    } else {
+                        feedbackText.text = ""
+                        updateUIForCurrent()
+                    }
+                } catch (e: Exception) {
+                    feedbackText.text = "Error after right answer"
                 }
             }, 900)
         } else {
-            sounds.fail()
+            try {
+                sounds.fail()
+            } catch (_: Exception) {
+            }
+
             game.markWrong()
             showWrongOrRetryMessage()
         }
+    } catch (e: Exception) {
+        feedbackText.text = "Speech error"
+    }
+}
     }
 
-    private fun showWrongOrRetryMessage() {
+   private fun showWrongOrRetryMessage() {
+    try {
         if (game.canRetryCurrent()) {
             feedbackText.text = "Wrong ✖ Try again"
         } else {
             feedbackText.text = "Wrong ✖"
             itemImage.postDelayed({
-                if (game.isFinished()) {
-                    showFinal()
-                } else {
-                    feedbackText.text = ""
-                    updateUIForCurrent()
+                try {
+                    if (game.isFinished()) {
+                        showFinal()
+                    } else {
+                        feedbackText.text = ""
+                        updateUIForCurrent()
+                    }
+                } catch (e: Exception) {
+                    feedbackText.text = "Error after wrong answer"
                 }
             }, 900)
         }
+    } catch (e: Exception) {
+        feedbackText.text = "Retry error"
+    }
+}
     }
 
     private fun showFinal() {
