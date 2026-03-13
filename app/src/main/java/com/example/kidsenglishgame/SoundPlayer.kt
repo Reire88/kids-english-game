@@ -2,25 +2,36 @@ package com.example.kidsenglishgame
 
 import android.content.Context
 import android.media.MediaPlayer
-import com.example.kidsenglishgame.R
+
 class SoundPlayer(private val context: Context) {
 
     private var successPlayer: MediaPlayer? = null
     private var failPlayer: MediaPlayer? = null
 
     fun success() {
-        if (successPlayer == null) successPlayer = MediaPlayer.create(context, R.raw.success)
-        successPlayer?.start()
+        try {
+            successPlayer?.release()
+            successPlayer = MediaPlayer.create(context, R.raw.success)
+            successPlayer?.start()
+        } catch (_: Exception) {
+        }
     }
 
     fun fail() {
-        if (failPlayer == null) failPlayer = MediaPlayer.create(context, R.raw.fail)
-        failPlayer?.start()
+        try {
+            failPlayer?.release()
+            failPlayer = MediaPlayer.create(context, R.raw.fail)
+            failPlayer?.start()
+        } catch (_: Exception) {
+        }
     }
 
     fun release() {
-        successPlayer?.release()
-        failPlayer?.release()
+        try {
+            successPlayer?.release()
+            failPlayer?.release()
+        } catch (_: Exception) {
+        }
         successPlayer = null
         failPlayer = null
     }
