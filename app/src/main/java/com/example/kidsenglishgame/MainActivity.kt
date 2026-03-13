@@ -63,15 +63,17 @@ class MainActivity : AppCompatActivity() {
         startNewGame()
     }
 
-    private fun startNewGame() {
-        game.startNewRound()
-        prizeImage.visibility = ImageView.GONE
-        restartButton.visibility = Button.GONE
-        micButton.visibility = Button.VISIBLE
-        itemImage.visibility = ImageView.VISIBLE
-        feedbackText.text = ""
-        updateUIForCurrent()
-   private fun updateUIForCurrent() {
+  private fun startNewGame() {
+    game.startNewRound()
+    prizeImage.visibility = ImageView.GONE
+    restartButton.visibility = Button.GONE
+    micButton.visibility = Button.VISIBLE
+    itemImage.visibility = ImageView.VISIBLE
+    feedbackText.text = ""
+    updateUIForCurrent()
+}
+
+private fun updateUIForCurrent() {
     val item = game.currentItem() ?: return
 
     val resId = item.drawableResId(this)
@@ -81,6 +83,10 @@ class MainActivity : AppCompatActivity() {
     } else {
         feedbackText.text = "Missing image: ${item.word}"
     }
+
+    scoreText.text = "Score: ${game.score}"
+    progressText.text = "${game.questionNumber()} / 10"
+}
 
     scoreText.text = "Score: ${game.score}"
     progressText.text = "${game.questionNumber()} / 10"
