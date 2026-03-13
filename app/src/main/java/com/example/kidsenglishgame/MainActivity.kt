@@ -197,18 +197,16 @@ class MainActivity : AppCompatActivity() {
 
         prizeImage.setImageResource(game.prizeForScore(score).drawableResId(this))
     }
-
-    override fun onDestroy() {
-        try {
-            speech.destroy()
-        } catch (_: Exception) {
-        }
-
-        try {
-            sounds.release()
-        } catch (_: Exception) {
-        }
-
-        super.onDestroy()
+override fun onDestroy() {
+    try {
+        speech.destroy()
+    } catch (_: Exception) {
     }
+
+    try {
+        sounds.release()
+    } catch (_: Exception) {
+    }
+
+    super.onDestroy()
 }
