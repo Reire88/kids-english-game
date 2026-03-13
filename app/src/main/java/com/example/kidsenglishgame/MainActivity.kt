@@ -2,7 +2,10 @@ package com.example.kidsenglishgame
 
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.widget.*
+import android.widget.Button
+import android.widget.ImageView
+import android.widget.ProgressBar
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -37,7 +40,9 @@ class MainActivity : AppCompatActivity() {
         spinner = findViewById(R.id.listeningSpinner)
 
         sounds = SoundPlayer(this)
-        speech = SpeechHelper(this,
+
+        speech = SpeechHelper(
+            this,
             onListeningChanged = { listening ->
                 spinner.visibility = if (listening) ProgressBar.VISIBLE else ProgressBar.GONE
                 micButton.isEnabled = !listening
@@ -46,7 +51,6 @@ class MainActivity : AppCompatActivity() {
                 handleSpeech(hypotheses)
             },
             onError = {
-                // Treat as "no result": allow retry without penalty
                 game.markNeedsRetry()
                 showWrongOrRetryMessage()
             }
@@ -63,38 +67,49 @@ class MainActivity : AppCompatActivity() {
         startNewGame()
     }
 
-  private fun startNewGame() {
-    game.startNewRound()
-    prizeImage.visibility = ImageView.GONE
-    restartButton.visibility = Button.GONE
-    micButton.visibility = Button.VISIBLE
-    itemImage.visibility = ImageView.VISIBLE
-    feedbackText.text = ""
-    updateUIForCurrent()
-}
-
-private fun updateUIForCurrent() {
-    val item = game.currentItem() ?: return
-
-    val resId = item.drawableResId(this)
-
-    if (resId != 0) {
-        itemImage.setImageResource(resId)
-    } else {
-        feedbackText.text = "Missing image: ${item.word}"
+    private fun startNewGame() {
+        game.startNewRound()
+        prizeImage.visibility = ImageView.GONE
+        restartButton.visibility = Button.GONE
+        micButton.visibility = Button.VISIBLE
+        itemImage.visibility = ImageView.VISIBLE
+        feedbackText.text = ""
+        updateUIForCurrent()
     }
 
-    scoreText.text = "Score: ${game.score}"
-    progressText.text = "${game.questionNumber()} / 10"
-}
+    private fun updateUIForCurrent() {
+        val item = game.currentItem() ?: return
+        val resId = item.drawableResId(this)
 
-    scoreText.text = "Score: ${game.score}"
-    progressText.text = "${game.questionNumber()} / 10"
+        if (resId != 0) {
+            itemImage.setImageResource(resId)
+        } else {
+            feedbackText.text = "Missing image: ${item.word}"
+        }
+
+        scoreText.text = "Score: ${game.score}"
+        progressText.text = "${game.questionNumber()} / 10"
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+    private fun ensureMicPermissionAndStart() {
+        val perm = android.Manifest.permission.RECORD_AUDIO
+        if (ContextCompat.checkSelfPermission(this, perm) == PackageManager.PERMISSION_GRANTED) {
+            speech.startListening()
+        } else {
+            ActivityCompat.requestPermissions(this, arrayOf(perm), 200)
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == 200 && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+        if (requestCode == 200 &&
+            grantResults.isNotEmpty() &&
+            grantResults[0] == PackageManager.PERMISSION_GRANTED
+        ) {
             speech.startListening()
         }
     }
@@ -107,7 +122,7 @@ private fun updateUIForCurrent() {
             sounds.success()
             feedbackText.text = "Right ✔"
             game.markCorrect()
-            // short pause then next
+
             itemImage.postDelayed({
                 if (game.isFinished()) {
                     showFinal()
@@ -125,7 +140,7 @@ private fun updateUIForCurrent() {
 
     private fun showWrongOrRetryMessage() {
         if (game.canRetryCurrent()) {
-            feedbackText.text = "Wrong ✖  Try again"
+            feedbackText.text = "Wrong ✖ Try again"
         } else {
             feedbackText.text = "Wrong ✖"
             itemImage.postDelayed({
@@ -137,13 +152,6 @@ private fun updateUIForCurrent() {
                 }
             }, 900)
         }
-    }
-
-    private fun updateUIForCurrent() {
-        val item = game.currentItem() ?: return
-        itemImage.setImageResource(item.drawableResId(this))
-        scoreText.text = "Score: ${game.score}"
-        progressText.text = "${game.questionNumber()} / 10"
     }
 
     private fun showFinal() {
