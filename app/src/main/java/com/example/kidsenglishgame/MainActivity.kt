@@ -71,15 +71,19 @@ class MainActivity : AppCompatActivity() {
         itemImage.visibility = ImageView.VISIBLE
         feedbackText.text = ""
         updateUIForCurrent()
+   private fun updateUIForCurrent() {
+    val item = game.currentItem() ?: return
+
+    val resId = item.drawableResId(this)
+
+    if (resId != 0) {
+        itemImage.setImageResource(resId)
+    } else {
+        feedbackText.text = "Missing image: ${item.word}"
     }
 
-    private fun ensureMicPermissionAndStart() {
-        val perm = android.Manifest.permission.RECORD_AUDIO
-        if (ContextCompat.checkSelfPermission(this, perm) == PackageManager.PERMISSION_GRANTED) {
-            speech.startListening()
-        } else {
-            ActivityCompat.requestPermissions(this, arrayOf(perm), 200)
-        }
+    scoreText.text = "Score: ${game.score}"
+    progressText.text = "${game.questionNumber()} / 10"
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
