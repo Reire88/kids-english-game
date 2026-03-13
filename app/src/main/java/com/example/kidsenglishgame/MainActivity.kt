@@ -2,7 +2,7 @@ package com.example.kidsenglishgame
 
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.widget.ButtonhowWrongOrRetryMessage
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
@@ -121,68 +121,64 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-  private fun handleSpeech(hypotheses: List<String>) {
-    try {
-        val item = game.currentItem() ?: return
-        val ok = SimilarityUtils.isAcceptable(hypotheses, item.word)
+    private fun handleSpeech(hypotheses: List<String>) {
+        try {
+            val item = game.currentItem() ?: return
+            val ok = SimilarityUtils.isAcceptable(hypotheses, item.word)
 
-        if (ok) {
-            // sounds.success()
-            feedbackText.text = "Right ✔"
-            game.markCorrect()
+            if (ok) {
+                feedbackText.text = "Right ✔"
+                game.markCorrect()
 
-            itemImage.postDelayed({
-                if (isFinishing || isDestroyed) return@postDelayed
+                itemImage.postDelayed({
+                    if (isFinishing || isDestroyed) return@postDelayed
 
-                try {
-                    if (game.isFinished()) {
-                        showFinal()
-                    } else {
-                        feedbackText.text = ""
-                        updateUIForCurrent()
+                    try {
+                        if (game.isFinished()) {
+                            showFinal()
+                        } else {
+                            feedbackText.text = ""
+                            updateUIForCurrent()
+                        }
+                    } catch (e: Exception) {
+                        feedbackText.text = "Error after right answer"
                     }
-                } catch (e: Exception) {
-                    feedbackText.text = "Error after right answer"
-                }
-            }, 900)
-
-        } else {
-            // sounds.fail()
-            game.markWrong()
-            showWrongOrRetryMessage()
+                }, 900)
+            } else {
+                game.markWrong()
+                showWrongOrRetryMessage()
+            }
+        } catch (e: Exception) {
+            feedbackText.text = "Speech error"
         }
-    } catch (e: Exception) {
-        feedbackText.text = "Speech error"
-    }
-}
     }
 
-  private fun showWrongOrRetryMessage() {
-    try {
-        if (game.canRetryCurrent()) {
-            feedbackText.text = "Wrong ✖ Try again"
-        } else {
-            feedbackText.text = "Wrong ✖"
+    private fun showWrongOrRetryMessage() {
+        try {
+            if (game.canRetryCurrent()) {
+                feedbackText.text = "Wrong ✖ Try again"
+            } else {
+                feedbackText.text = "Wrong ✖"
 
-            itemImage.postDelayed({
-                if (isFinishing || isDestroyed) return@postDelayed
+                itemImage.postDelayed({
+                    if (isFinishing || isDestroyed) return@postDelayed
 
-                try {
-                    if (game.isFinished()) {
-                        showFinal()
-                    } else {
-                        feedbackText.text = ""
-                        updateUIForCurrent()
+                    try {
+                        if (game.isFinished()) {
+                            showFinal()
+                        } else {
+                            feedbackText.text = ""
+                            updateUIForCurrent()
+                        }
+                    } catch (e: Exception) {
+                        feedbackText.text = "Error after wrong answer"
                     }
-                } catch (e: Exception) {
-                    feedbackText.text = "Error after wrong answer"
-                }
-            }, 900)
+                }, 900)
+            }
+        } catch (e: Exception) {
+            feedbackText.text = "Retry error"
         }
-    } catch (e: Exception) {
-        feedbackText.text = "Retry error"
     }
-}
 
     private fun showFinal() {
         itemImage.visibility = ImageView.GONE
@@ -197,16 +193,18 @@ class MainActivity : AppCompatActivity() {
 
         prizeImage.setImageResource(game.prizeForScore(score).drawableResId(this))
     }
-override fun onDestroy() {
-    try {
-        speech.destroy()
-    } catch (_: Exception) {
-    }
 
-    try {
-        sounds.release()
-    } catch (_: Exception) {
-    }
+    override fun onDestroy() {
+        try {
+            speech.destroy()
+        } catch (_: Exception) {
+        }
 
-    super.onDestroy()
+        try {
+            sounds.release()
+        } catch (_: Exception) {
+        }
+
+        super.onDestroy()
+    }
 }
