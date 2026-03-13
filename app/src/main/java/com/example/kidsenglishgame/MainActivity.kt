@@ -121,40 +121,30 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-   private fun handleSpeech(hypotheses: List<String>) {
-    try {
-        val item = game.currentItem() ?: return
-        val ok = SimilarityUtils.isAcceptable(hypotheses, item.word)
+    private fun handleSpeech(hypotheses: List<String>) {
+        try {
+            val item = game.currentItem() ?: return
+            val ok = SimilarityUtils.isAcceptable(hypotheses, item.word)
 
-        if (ok) {
-            // sounds.success()
+            if (ok) {
+                // sounds.success()
+                feedbackText.text = "Right ✔"
+                game.markCorrect()
 
-            feedbackText.text = "Right ✔"
-            game.markCorrect()
-
-            itemImage.postDelayed({
-                try {
-                    if (game.isFinished()) {
-                        showFinal()
-                    } else {
-                        feedbackText.text = ""
-                        updateUIForCurrent()
+                itemImage.postDelayed({
+                    try {
+                        if (game.isFinished()) {
+                            showFinal()
+                        } else {
+                            feedbackText.text = ""
+                            updateUIForCurrent()
+                        }
+                    } catch (e: Exception) {
+                        feedbackText.text = "Error after right answer"
                     }
-                } catch (e: Exception) {
-                    feedbackText.text = "Error after right answer"
-                }
-            }, 900)
-        } else {
-            // sounds.fail()
-
-            game.markWrong()
-            showWrongOrRetryMessage()
-        }
-    } catch (e: Exception) {
-        feedbackText.text = "Speech error"
-    }
-                }
-
+                }, 900)
+            } else {
+                // sounds.fail()
                 game.markWrong()
                 showWrongOrRetryMessage()
             }
@@ -201,16 +191,17 @@ class MainActivity : AppCompatActivity() {
         prizeImage.setImageResource(game.prizeForScore(score).drawableResId(this))
     }
 
-  override fun onDestroy() {
-    try {
-        speech.destroy()
-    } catch (_: Exception) {
-    }
+    override fun onDestroy() {
+        try {
+            speech.destroy()
+        } catch (_: Exception) {
+        }
 
-    try {
-        sounds.release()
-    } catch (_: Exception) {
-    }
+        try {
+            sounds.release()
+        } catch (_: Exception) {
+        }
 
-    super.onDestroy()
+        super.onDestroy()
+    }
 }
